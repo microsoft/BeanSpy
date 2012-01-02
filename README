@@ -1,3 +1,19 @@
+/**
+ * Copyright (c) Microsoft Corporation
+ *
+ * Licensed under the Apache License, Version 2.0 (the "License"); you may not use 
+ * this file except in compliance with the License. You may obtain a copy of the 
+ * License at http://www.apache.org/licenses/LICENSE-2.0.
+ *  
+ * THIS CODE IS PROVIDED *AS IS* BASIS, WITHOUT WARRANTIES OR CONDITIONS 
+ * OF ANY KIND, EITHER EXPRESS OR IMPLIED, INCLUDING WITHOUT LIMITATION 
+ * ANY IMPLIED WARRANTIES OR CONDITIONS OF TITLE, FITNESS FOR A PARTICULAR PURPOSE, 
+ * MERCHANTABLITY OR NON-INFRINGEMENT. 
+ *
+ * See the Apache Version 2.0 License for specific language governing 
+ * permissions and limitations under the License.
+ */
+
 1. Overview
 BeanSpy is an open source technology provided by Microsoft for exposing JMX information from Java EE application servers through HTTP queries.  It currently supports the following Java EE application servers and web containers:
     Tomcat 5.5, 6, 7
@@ -12,8 +28,6 @@ The binary package contains 4 BeanSpy files digitally signed by Microsoft:
     BeanSpy.HTTP.NoAuth.war
 
 BeanSpy.ear and BeanSpy.war are used in cases where the Java EE application server or web container is using HTTPs transport with basic auth servlet authentication.  The HTTP.NoAuth version is used in HTTP transport without servlet authentication.  
-
-The rest of this file describes how to use BeanSpy.  To build BeanSpy, please see the readme file included in the source package.
 
 2. How to deploy BeanSpy
 If your Java EE application server or web container is using HTTPs with basic auth, deploy BeanSpy.ear to JBoss/WebSphere/WebLogic; deploy BeanSpy.war to Tomcat. For Tomcat/JBoss/WebSphere, BeanSpy requires a user role "monitoring" for querying JVM and MBeans, and a user role "invoke" for invoking methods on MBeans, for WebLogic, BeanSpy requires "monitors" role for quering JVM and MBeans and "operators" role for invoking methods on MBeans. 
@@ -72,3 +86,36 @@ Default value: 4184304 (4MB)
 
 Modification: can be modified by the end user in resources.configuration.config file.
 ________________________________________
+
+5. How to build BeanSpy
+Pre-requisites
+________________________________________
+To build the BeanSpy servlet application the following external files are required, download 
+the respective packages and copy the files to the required locations.
+
+The Tomcat servlet-api file is required
+  destination file: \source\ext\Tomcat\servlet-api.jar 
+  this file is available from http://tomcat.apache.org/ and is bundled in most Tomcat binary distributions.
+
+
+To include the build and execution of the unit tests the following junit jar files are required
+  destination file: \source\ext\junit\junit-4.x.jar 
+  destination file: \source\ext\junit\junit-dep-4.x.jar 
+  these files are available from http://www.junit.org/
+
+
+To build the BeanSpy project
+________________________________________
+Ant and java is used to build and package the java code into WAR and EAR files as well
+as build and execute the unit tests.
+Ant is available from http://ant.apache.org/
+To build the servlet, run "ant" from the /build folder.
+To build and execute the junit tests, run "ant clean ears testrun" from the /build folder.
+
+
+The build.xml has support for both debug and release builds this is controlled by command line switches to 
+ant, the default build is for release purposes to build the debug version run ant with the following switch
+"-Ddebug=true" i.e. "ant clean ears testrun -Ddebug=true".
+
+There are other build switches that can be used to control, java version, product version, verbosity 
+and javadocs. 
