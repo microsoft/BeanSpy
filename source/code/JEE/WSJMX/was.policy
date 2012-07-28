@@ -1,0 +1,61 @@
+//
+// Copyright (c) Microsoft Corporation
+//
+// Licensed under the Apache License, Version 2.0 (the "License"); you may not use 
+// this file except in compliance with the License. You may obtain a copy of the 
+// License at http://www.apache.org/licenses/LICENSE-2.0.
+//  
+// THIS CODE IS PROVIDED *AS IS* BASIS, WITHOUT WARRANTIES OR CONDITIONS 
+// OF ANY KIND, EITHER EXPRESS OR IMPLIED, INCLUDING WITHOUT LIMITATION 
+// ANY IMPLIED WARRANTIES OR CONDITIONS OF TITLE, FITNESS FOR A PARTICULAR PURPOSE, 
+// MERCHANTABLITY OR NON-INFRINGEMENT. 
+//
+// See the Apache Version 2.0 License for specific language governing 
+// permissions and limitations under the License.
+//
+
+// ========== Microsoft BeanSpy Application Permissions =============================
+// The security policy permissions granted to the BeanSpy servlet.
+// The BeanSpy servlet has the ability to query all MBeans on the MBean Server and 
+// therefore requires read access to all of the following properties, packages and files
+//
+// J2EE 1.4 Specification
+//
+// NOTE: Syntax errors in the policy files will cause the enterprise application FAIL to start.
+//       Extreme care should be taken when editing these policy files. It is advised to use
+//       the policytool provided by the JDK for editing the policy files
+//       (WAS_HOME/java/jre/bin/policytool). 
+//
+
+grant codeBase "file:${application}" {
+    permission java.lang.management.ManagementPermission             "monitor"; 
+    permission com.ibm.websphere.security.WebSphereRuntimePermission "AdminPermission";
+    permission com.ibm.websphere.security.WebSphereRuntimePermission "accessRuntimeClasses";
+    permission com.ibm.websphere.security.WebSphereRuntimePermission "accessClassLoaderInfo";
+
+    permission javax.management.MBeanServerPermission    "createMBeanServer";
+    permission javax.management.MBeanPermission          "*", "registerMBean"; 
+    permission javax.management.MBeanPermission          "*", "getAttribute";
+    permission javax.management.MBeanPermission          "*", "getMBeanInfo";
+    permission javax.management.MBeanPermission          "*", "invoke";
+    permission javax.management.MBeanPermission          "*", "queryMBeans";  
+    permission org.osgi.framework.AdminPermission        "*", "resource";
+    permission java.util.PropertyPermission              "*", "read,write";
+    permission com.ibm.oti.shared.SharedClassPermission  "java.net.URLClassLoader", "read,write";
+    
+    permission java.lang.RuntimePermission "accessDeclaredMembers";
+    permission java.lang.RuntimePermission "getProtectionDomain";
+    permission java.lang.RuntimePermission "getClassLoader";
+    permission java.lang.RuntimePermission "createClassLoader";
+    
+    permission java.io.FilePermission "WAS.product", "read";
+    permission java.io.FilePermission "${user.install.root}${/}config${/}-", "read";
+    permission java.io.FilePermission "${was.install.root}", "read";
+    permission java.io.FilePermission "${was.install.root}${/}logs${/}", "read";
+    permission java.io.FilePermission "${was.install.root}${/}systemApps${/}-", "read";
+    permission java.io.FilePermission "${was.install.root}${/}properties${/}-", "read";
+    permission java.io.FilePermission "${user.install.root}${/}installedApps${/}-", "read";
+    permission java.io.FilePermission "${user.install.root}${/}installedConnectors${/}-", "read";
+    permission java.io.FilePermission "${was.install.root}${/}bin${/}-", "read";
+};
+

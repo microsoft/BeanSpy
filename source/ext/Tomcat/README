@@ -1,0 +1,2 @@
+The servlet-api.jar was obtained from \common\lib folder of Tomcat 5.5.29 
+The file is required to compile and run the unit tests for BeanSpy.

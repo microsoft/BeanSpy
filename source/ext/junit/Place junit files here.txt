@@ -1,0 +1,4 @@
+Place the junit jar files in this folder.
+(4.8.1 , 4.9 or 4.10 have been tested and work)
+junit-4.x.jar 
+junit-dep-4.x.jar 

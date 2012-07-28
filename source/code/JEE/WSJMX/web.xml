@@ -1,0 +1,124 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!-- Copyright (c) Microsoft Corporation                                               -->
+<!--                                                                                 -->
+<!-- Licensed under the Apache License, Version 2.0 (the "License"); you may not use -->
+<!-- this file except in compliance with the License. You may obtain a copy of the   -->
+<!-- License at http://www.apache.org/licenses/LICENSE-2.0.                          -->
+<!--                                                                                 -->
+<!-- THIS CODE IS PROVIDED *AS IS* BASIS, WITHOUT WARRANTIES OR CONDITIONS           -->
+<!-- OF ANY KIND, EITHER EXPRESS OR IMPLIED, INCLUDING WITHOUT LIMITATION            -->
+<!-- ANY IMPLIED WARRANTIES OR CONDITIONS OF TITLE, FITNESS FOR A PARTICULAR PURPOSE,-->
+<!-- MERCHANTABLITY OR NON-INFRINGEMENT.                                             -->
+<!--                                                                                 -->
+<!-- See the Apache Version 2.0 License for specific language governing              -->
+<!-- permissions and limitations under the License.                                  -->
+<!--                                                                                 -->
+
+<web-app version="2.4" xmlns="http://java.sun.com/xml/ns/j2ee"
+ xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://java.sun.com/xml/ns/j2ee   http://java.sun.com/xml/ns/j2ee/web-app_2_4.xsd">
+  <servlet>
+    <description>Remote access to MBeans</description>
+    <display-name>BeanSpy</display-name>
+    <servlet-name>BeanSpy</servlet-name>
+    <servlet-class>com.interopbridges.scx.beanspy.BeanSpy</servlet-class>
+  </servlet>
+  
+  <servlet>
+    <description>Remote access to JEE Statistics</description>
+    <display-name>BeanSpy Stats</display-name>
+    <servlet-name>MXBeanExtender</servlet-name>
+    <servlet-class>com.interopbridges.scx.mxbeanextender.MXBeanExtender</servlet-class>
+  </servlet>
+  
+  <servlet-mapping>
+    <servlet-name>BeanSpy</servlet-name>
+    <url-pattern>/MBeans/*</url-pattern>
+  </servlet-mapping>
+  
+  <servlet-mapping>
+    <servlet-name>MXBeanExtender</servlet-name>
+    <url-pattern>/Stats/*</url-pattern>
+  </servlet-mapping>
+
+  <!-- /////////////////////////////////////////////////////////////// -->
+  <!-- BEGIN SECURITY SECTION                                          -->
+  <!-- /////////////////////////////////////////////////////////////// -->
+  <!--                                                                 -->
+  <!-- The following security contraints are for all                   -->
+  <!-- Application Servers.                                            -->
+  <!-- The user-data-constraint establishes a requirement that the     -->
+  <!-- requests be received over a protected transport layer           -->
+  <!-- connection. To ensure secure transport set the                  -->
+  <!-- transport-guarantee to "CONFIDENTIAL" or "NONE" if unsecure     -->
+  <!-- transport is required.                                          -->
+  <!-- In addition in may be necessary to modify the appropriate       -->
+  <!-- application server specific configuration files to ensure that  -->
+  <!-- the configured data is correct for your system configuration.   -->
+  <!-- JBOSS   : jboss-web.xml file.                                   -->
+  <!-- WebLogic: weblogic.xml file.                                    -->
+  <!--                                                                 -->
+  <!-- To disable basic authentication, comment out the                -->
+  <!-- 'login-config' section and modify the appropriate application   -->
+  <!-- server specific configuration files.                            -->
+  <security-constraint>
+    <web-resource-collection>
+      <web-resource-name>BeanSpy denied resources</web-resource-name>
+      <description>Protects BeanSpy resources</description>
+      <url-pattern>/*</url-pattern>
+      <!-- Only allow HEAD/GET verbs -->
+      <http-method>PUT</http-method>
+      <http-method>DELETE</http-method>
+      <http-method>OPTIONS</http-method>
+      <http-method>TRACE</http-method>
+    </web-resource-collection>
+    <!-- This empty auth-constraint means that the above methods are -->
+    <!-- denied for all users. -->
+    <auth-constraint />
+  </security-constraint>
+
+  <security-constraint>
+    <web-resource-collection>
+      <web-resource-name>BeanSpy resources</web-resource-name>
+      <description>Protects BeanSpy resources</description>
+      <url-pattern>/*</url-pattern>
+      <http-method>GET</http-method>
+      <http-method>HEAD</http-method>
+    </web-resource-collection>
+    <auth-constraint>
+      <role-name>monitoring</role-name>
+    </auth-constraint>
+  </security-constraint>
+
+  <security-constraint>
+    <web-resource-collection>
+      <web-resource-name>BeanSpy Invoke resources</web-resource-name>
+      <description>Protects BeanSpy Invoke resources</description>
+      <url-pattern>/*</url-pattern>
+      <!-- Only allow POST verb -->
+      <http-method>POST</http-method>
+    </web-resource-collection>
+    <auth-constraint>
+      <role-name>invoke</role-name>
+    </auth-constraint>
+  </security-constraint>
+
+  <security-role>
+    <role-name>monitoring</role-name>
+  </security-role>
+  <security-role>
+    <role-name>invoke</role-name>
+  </security-role>
+
+  <login-config>
+    <auth-method>BASIC</auth-method>
+    <realm-name>myrealm</realm-name>
+  </login-config>
+  
+  <!-- /////////////////////////////////////////////////////////////// -->
+  <!-- END SECURITY SECTION                                            -->
+  <!-- /////////////////////////////////////////////////////////////// -->
+
+  <listener>
+    <listener-class>com.interopbridges.scx.servlet.JmxStoreRegistration</listener-class>
+  </listener>
+</web-app>

@@ -1,0 +1,314 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- Copyright (c) Microsoft Corporation                                               -->
+<!--                                                                                 -->
+<!-- Licensed under the Apache License, Version 2.0 (the "License"); you may not use -->
+<!-- this file except in compliance with the License. You may obtain a copy of the   -->
+<!-- License at http://www.apache.org/licenses/LICENSE-2.0.                          -->
+<!--                                                                                 -->
+<!-- THIS CODE IS PROVIDED *AS IS* BASIS, WITHOUT WARRANTIES OR CONDITIONS           -->
+<!-- OF ANY KIND, EITHER EXPRESS OR IMPLIED, INCLUDING WITHOUT LIMITATION            -->
+<!-- ANY IMPLIED WARRANTIES OR CONDITIONS OF TITLE, FITNESS FOR A PARTICULAR PURPOSE,-->
+<!-- MERCHANTABLITY OR NON-INFRINGEMENT.                                             -->
+<!--                                                                                 -->
+<!-- See the Apache Version 2.0 License for specific language governing              -->
+<!-- permissions and limitations under the License.                                  -->
+<!--                                                                                 -->
+
+<project name="scx" default="all" basedir="..">
+
+  <!-- ================================= 
+       Initialize Variable Declarations
+       ================================= -->
+  <property name="debug" value="false" />
+  <property name="verbose" value="false" />
+  <property name="version" value="1.5" />
+
+  <!-- The following two properties are placeholders, the real value -->
+  <!-- should be specified at build-time by msbuild.                 -->
+  <property name="msbuild.label" value="NotFromLabel" />
+  <property name="msbuild.version" value="NotFromLabel" />
+
+  <condition property="release.type" value="Debug" else="Release">
+    <istrue value="${debug}" />
+  </condition>
+
+  <condition property="instrumentation.type" value="CodeCoverage" else="Standard">
+    <istrue value="${code.coverage}" />
+  </condition>
+
+  <property name="build.dir" location="${basedir}/build" />
+  <property name="ext.dir" location="${basedir}/source/ext" />
+  <property name="src.dir" location="${basedir}/source/code/JEE" />
+  <property name="test.dir" location="${basedir}/test/code/JEE" />
+
+  <property name="junit.dir" location="${ext.dir}/junit" />
+  <property name="junit.jar" location="${junit.dir}/junit-4.8.1.jar" />
+
+  <property name="tomcat.lib.dir" location="${ext.dir}/tomcat" />
+
+  <!-- Start of temporary directories -->
+  <property name="intermediate.base.dir" location="${basedir}/intermediate" />
+  <property name="target.base.dir" location="${basedir}/target" />
+  <property name="intermediate.dir" location="${intermediate.base.dir}/JEE/${release.type}/${instrumentation.type}" />
+  <property name="intermediate.war.dir" location="${intermediate.dir}/war" />
+  <property name="target.dir" location="${target.base.dir}/JEE/${release.type}/${instrumentation.type}" />
+  <property name="classes.dir" location="${intermediate.dir}/classes" />
+  <property name="resources.dir" location="${intermediate.dir}/classes/resources" />
+  <property name="metainf.dir" location="${intermediate.dir}/ear/META-INF" />
+  <property name="webinf.dir" location="${intermediate.dir}/war/WEB-INF" />
+  <property name="webinf.HTTP.NoAuth.dir" location="${intermediate.dir}/war/WEB-INF-HTTP-NoAuth" />
+  <!-- End of temporary directories -->
+
+  <!-- Intermediate Source Directory for source code -->
+  <!-- that must be modified at build-time           -->
+  <property name="src.replace.dir" location="${intermediate.dir}/source/code/JEE" />
+
+  <path id="classpath.production">
+    <fileset dir="${intermediate.dir}" includes="**/*.jar" />
+    <fileset dir="${tomcat.lib.dir}" includes="**/*.jar" />
+  </path>
+
+  <path id="classpath.test">
+    <fileset dir="${junit.dir}" includes="**/*.jar" />
+  </path>
+
+  <!-- - - - - - - - - - - - - - - - - - 
+       target: setup
+       Creates required directories for intermediate and target build steps 
+       - - - - - - - - - - - - - - - - - -->
+  <target name="setup">
+    <mkdir dir="${intermediate.dir}" />
+    <mkdir dir="${target.dir}" />
+  </target>
+
+  <!-- ================================= 
+       target: clean
+       Delete binaries and generated files used during the
+       build process.
+       ================================= -->
+  <target name="clean">
+    <delete includeemptydirs="true" failonerror="false">
+      <fileset dir="${intermediate.dir}" includes="**" />
+      <fileset dir="${target.dir}" includes="**" />
+    </delete>
+  </target>
+
+  <!-- ================================= 
+       target: all
+       (Cleanly) builds everything. This is the default target. 
+       ================================= -->
+  <target name="all" depends="clean, setup, wars, ears, javadoc" />
+
+  <!-- ================================= 
+       target: compile.src
+       Target for compiling the java production code  
+       ================================= -->
+  <target name="compile.src" depends="setup">
+    <mkdir dir="${classes.dir}" />
+    <antcall target="create.version" />
+    <javac srcdir="${src.dir}" destdir="${classes.dir}" verbose="${verbose}" source="${version}" target="${version}" debug="${debug}" debuglevel="lines,vars,source" includeAntRuntime="false">
+      <classpath refid="classpath.production" />
+      <classpath path="${classes.dir}" />
+      <include name="**/*.java"/>
+      <exclude name="**/MsVersion.java"/>
+    </javac>
+
+  </target>
+
+  <!-- ================================= 
+       target: create.version
+       Copy the "Version File to the intermediate directory
+       and perform string replacements
+       ================================= -->
+  <target name="create.version">
+
+    <delete verbose="true" file="${classes.dir}/com/interopbridges/scx/util/MsVersion.class" />
+    <mkdir dir="${classes.dir}"/>
+    <mkdir dir="${src.replace.dir}/Common/src/com/interopbridges/scx/util"/>
+    <copy file="${src.dir}/Common/src/com/interopbridges/scx/util/MsVersion.java" tofile="${src.replace.dir}/Common/src/com/interopbridges/scx/util/MsVersion.java" />
+    <copy file="${src.dir}/WSJMX/version.xml" tofile="${src.replace.dir}/WSJMX/version.xml" />
+    <!-- Create the datestamp -->
+    <tstamp/>
+
+    <replace dir="${src.replace.dir}">
+      <replacefilter token="@BUILD_DATE@" value="${DSTAMP}" />
+      <replacefilter token="@LABEL_NAME@" value="${msbuild.label}" />
+      <replacefilter token="@VERSION@" value="${msbuild.version}" />
+    </replace>
+
+    <javac srcdir="${src.replace.dir}" destdir="${classes.dir}" verbose="${verbose}" source="${version}" target="${version}" debug="${debug}" debuglevel="lines,vars,source" includeAntRuntime="false">
+      <classpath refid="classpath.production" />
+    </javac>
+
+  </target>
+
+  <!-- ================================= 
+       target: javadoc              
+       ================================= -->
+  <target name="javadoc" description="Generate Javadoc documentation">
+    <mkdir dir="${target.dir}/javadoc" />
+    <javadoc destdir="${target.dir}/javadoc" verbose="${verbose}" source="${version}">
+      <classpath>
+        <path refid="classpath.production" />
+        <path refid="classpath.test" />
+      </classpath>
+      <fileset dir="${src.dir}">
+        <include name="**/src/" />
+      </fileset>
+    </javadoc>
+  </target>
+
+  <!-- ================================= 
+       target: wars
+       Create a WAR file containing BeanSpy for
+       managing the application server(s)  
+       ================================= -->
+  <target name="wars" depends="compile.src" unless="${code.coverage}">
+    <mkdir dir="${intermediate.war.dir}" />
+    <mkdir dir="${webinf.dir}" />
+    <copy file="${src.dir}/WSJMX/jboss-web.xml" todir="${webinf.dir}" />
+    <copy file="${src.dir}/WSJMX/weblogic.xml" todir="${webinf.dir}" />
+    <copy file="${src.dir}/WSJMX/weblogic.HTTP.NoAuth.xml" tofile="${webinf.HTTP.NoAuth.dir}/weblogic.xml" />
+    <copy file="${src.dir}/WSJMX/jboss-web.xml" todir="${webinf.HTTP.NoAuth.dir}" />
+    <copy todir="${resources.dir}">
+      <fileset dir="${src.dir}">
+        <include name="**/*.properties" />
+        <include name="**/*.xml" />
+      </fileset>
+      <!-- The properties are potentially scattered in several different -->
+      <!-- directories. Use a global mapper and regexp to strip out the  -->
+      <!-- preceeding directory path -->
+      <mapper type="regexp" from="^(.*)resources(.*)\.(.*)$$" to="\2.\3" />
+    </copy>
+
+    <war destfile="${target.dir}/BeanSpy.war" webxml="${src.dir}/WSJMX/web.xml">
+      <classes dir="${classes.dir}">
+        <include name="com/interopbridges/scx/**/*.class" />
+        <include name="resources/**/*.properties" />
+        <include name="resources/**/*.xml" />
+        <exclude name="**/Mock*.class" />
+        <exclude name="**/*Test.class" />
+        <exclude name="**/*Tests.class" />
+      </classes>
+      <webinf dir="${webinf.dir}" />
+      <fileset dir="${src.replace.dir}/WSJMX/"/>
+    </war>
+    <war destfile="${target.dir}/BeanSpy.HTTP.NoAuth.war" webxml="${src.dir}/WSJMX/web.HTTP.NoAuth.xml">
+      <classes dir="${classes.dir}">
+        <include name="com/interopbridges/scx/**/*.class" />
+        <include name="resources/**/*.properties" />
+        <include name="resources/**/*.xml" />
+        <exclude name="**/Mock*.class" />
+        <exclude name="**/*Test.class" />
+        <exclude name="**/*Tests.class" />
+      </classes>
+      <webinf dir="${webinf.HTTP.NoAuth.dir}" />
+      <fileset dir="${src.replace.dir}/WSJMX/"/>
+    </war>
+  </target>
+
+  <!-- ================================= 
+       target: ears
+       Build Enterprise Application archives  
+       ================================= -->
+  <target name="ears" depends="wars">
+    <mkdir dir="${metainf.dir}" />
+    <copy file="${src.dir}/WSJMX/was.policy" todir="${metainf.dir}"/>
+    <copy file="${target.dir}/BeanSpy.HTTP.NoAuth.war" tofile="${intermediate.war.dir}/BeanSpy.war"/>
+    <ear destfile="${target.dir}/BeanSpy.ear" appxml="${src.dir}/WSJMX/application.xml">
+      <metainf dir="${metainf.dir}"/>
+      <fileset dir="${target.dir}" includes="BeanSpy.war" />
+    </ear>
+    <ear destfile="${target.dir}/BeanSpy.HTTP.NoAuth.ear" appxml="${src.dir}/WSJMX/application.xml">
+      <metainf dir="${metainf.dir}"/>
+      <fileset dir="${intermediate.war.dir}" includes="BeanSpy.war" />
+    </ear>
+  </target>
+
+  <!-- ================================= 
+       target: test.app.jar
+       Simple jar containing all class files to simplfy creating command-line test applications  
+       ================================= -->
+  <target name="test.app.jar" depends="compile.src">
+    <jar destfile="${target.dir}/test-app.jar">
+      <fileset dir="${classes.dir}">
+        <include name="com/interopbridges/scx/**/*.class" />
+        <exclude name="**/Mock*.class" />
+        <exclude name="**/*Test.class" />
+        <exclude name="**/*Tests.class" />
+      </fileset>
+
+    </jar>
+  </target>
+
+  <!-- ================================= 
+       target: compile.test
+       Target for compiling the java (unit-)test code  
+       ================================= -->
+  <target name="compile.test" depends="compile.src">
+    <javac srcdir="${test.dir}" destdir="${classes.dir}" target="${version}" includeAntRuntime="false" debug="${debug}">
+      <classpath>
+        <path refid="classpath.production" />
+        <path refid="classpath.test" />
+      </classpath>
+    </javac>
+  </target>
+
+  <!-- ================================= 
+       target: testrun
+       Target looks in the intermediate directory of compiled classes
+       and runs all *Test classes.  As a function of JUNIT, this generates
+       XML output files per class.  There are then additional steps that
+       merges these files together into a single report via XSLT that
+       contains the total number of errors, failures, and tests run. 
+       ================================= -->
+  <target name="testrun" depends="setup, test" description="Run Test Code" />
+
+  <target name="test" depends="compile.test" description="Run Test Code">
+    <!-- 
+    Run all (compiled) unit tests. Default junit behavior is that
+    each of these classes generate an XML file with the class-specific
+    results.  Thus at the end of the run, there are a lot of XML files.
+    The following junitreport task merges them together. 
+    Note: fork/forkmode needed for code coverage
+    -->
+    <junit fork="true" forkmode="once" haltonerror="false" haltonfailure="false" showoutput="false" printsummary="true">
+      <classpath>
+        <pathelement path="${classes.dir}" />
+        <path refid="classpath.production" />
+        <path refid="classpath.test" />
+      </classpath>
+      <batchtest todir="${intermediate.dir}">
+        <fileset dir="${classes.dir}">
+          <!-- Alternatively, to run a single test or testsuite -->
+          <!-- use the commented line below instead             -->
+          <!--<include name="**/RunAllTests.class"/>-->
+          <include name="**/*Test.class" />
+        </fileset>
+      </batchtest>
+      <formatter type="xml" usefile="true" />
+    </junit>
+
+    <!--
+    Responsible for merging the individual XML files from the above
+    junit run into a single, cohensive report using the internally 
+    supplied stylesheet. Note: this stylesheet is specifically terse.
+    If more output is required (especially for developmet reasons),
+    then it is recommended that the existing the stylesheet is 
+    (a) remove
+    (b) modified 
+    -->
+    <junitreport todir="${intermediate.dir}">
+      <fileset dir="${intermediate.dir}">
+        <include name="TEST-*.xml" />
+      </fileset>
+      <report format="noframes" styledir="${build.dir}" todir="${intermediate.dir}" />
+    </junitreport>
+    <!-- 
+    Output file name of the junitreport task is not configurable,
+    renaming to something a bit more relevant.
+    -->
+    <move file="${intermediate.dir}/junit-noframes.html" tofile="${target.dir}/java-unittest-results.xml" />
+  </target>
+
+</project>

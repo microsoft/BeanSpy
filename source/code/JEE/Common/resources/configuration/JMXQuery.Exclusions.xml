@@ -1,0 +1,47 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<JMXQuery>
+  <Exclude>
+<!--
+     The JMXStore tag specifies whether the specified JmxStore has any exclusions.
+     The JMXStore Name attribute specifies which stores/stores have exclusions,
+     you may use "*" as the Name which means that the exclusion will apply to all 
+     JMX Stores.
+     
+     The MBeanObjectName tag specifies which MBean/s have exclusions, a JMXQuery syntax 
+     can be used to filter the MBeans that should contain exclusions. You can specify
+        <MBeanObjectName Name="*:name=//localhost/manager">
+     
+     
+     The Attribute tag   specifies which attribute/property to exclude.
+     
+     Excludes everything
+     *******************
+     <JMXStore Name="*">
+         <MBeanObjectName Name="*:*">
+             <Attribute>*</Attribute>
+         </MBeanObjectName>
+     </JMXStore>
+  
+     Excludes everything for all MBeans named 'myDomain:*'
+     *****************************************************
+     <JMXStore Name="*">
+         <MBeanObjectName Name="myDomain:*">
+             <Attribute>*</Attribute>
+         </MBeanObjectName>
+     </JMXStore>
+     
+     Excludes all properties named 'entropy' for the Tomcat JDK store
+     ****************************************************************
+    <JMXStore Name="com.interopbridges.scx.jmx.JdkJMXAbstraction">
+      <MBeanObjectName Name="Catalina:*">
+        <Attribute>entropy</Attribute>
+      </MBeanObjectName>  
+    </JMXStore>
+-->
+    <JMXStore Name="com.interopbridges.scx.jmx.JdkJMXAbstraction">
+      <MBeanObjectName Name="Catalina:*">
+        <Attribute>entropy</Attribute>
+      </MBeanObjectName>
+    </JMXStore>
+  </Exclude>
+</JMXQuery>
