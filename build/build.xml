@@ -42,7 +42,6 @@
   <property name="test.dir" location="${basedir}/test/code/JEE" />
 
   <property name="junit.dir" location="${ext.dir}/junit" />
-  <property name="junit.jar" location="${junit.dir}/junit-4.8.1.jar" />
 
   <property name="tomcat.lib.dir" location="${ext.dir}/tomcat" />
 
@@ -80,8 +79,8 @@
   	<get verbose="on" dest="${tomcat.lib.dir}" src="http://search.maven.org/remotecontent?filepath=javax/servlet/servlet-api/2.5/servlet-api-2.5.jar">
   		<globmapper from="*" to="servlet-api-2.5.jar"/>
   	</get>
-    <get verbose="on" dest="${junit.dir}" src="http://search.maven.org/remotecontent?filepath=junit/junit/3.8.2/junit-3.8.2.jar">
-  		<globmapper from="*" to="junit-3.8.2.jar"/>
+    <get verbose="on" dest="${junit.dir}" src="http://search.maven.org/remotecontent?filepath=junit/junit/4.11/junit-4.11.jar">
+  		<globmapper from="*" to="junit-4.11.jar"/>
     </get>
     <mkdir dir="${intermediate.dir}" />
     <mkdir dir="${target.dir}" />
@@ -252,10 +251,11 @@
        Target for compiling the java (unit-)test code  
        ================================= -->
   <target name="compile.test" depends="compile.src">
-    <javac srcdir="${test.dir}" destdir="${classes.dir}" target="${version}" includeAntRuntime="false" debug="${debug}">
+    <javac srcdir="${test.dir}" destdir="${classes.dir}" source="${version}" target="${version}" includeAntRuntime="false" debug="${debug}">
       <classpath>
         <path refid="classpath.production" />
         <path refid="classpath.test" />
+        <pathelement path="${classes.dir}" />
       </classpath>
     </javac>
   </target>
