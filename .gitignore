@@ -1,0 +1,4 @@
+/target
+/intermediate
+source/ext/Tomcat/*.jar
+source/ext/junit/*.jar

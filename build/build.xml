@@ -77,6 +77,12 @@
        Creates required directories for intermediate and target build steps 
        - - - - - - - - - - - - - - - - - -->
   <target name="setup">
+  	<get verbose="on" dest="${tomcat.lib.dir}" src="http://search.maven.org/remotecontent?filepath=javax/servlet/servlet-api/2.5/servlet-api-2.5.jar">
+  		<globmapper from="*" to="servlet-api-2.5.jar"/>
+  	</get>
+    <get verbose="on" dest="${junit.dir}" src="http://search.maven.org/remotecontent?filepath=junit/junit/3.8.2/junit-3.8.2.jar">
+  		<globmapper from="*" to="junit-3.8.2.jar"/>
+    </get>
     <mkdir dir="${intermediate.dir}" />
     <mkdir dir="${target.dir}" />
   </target>
