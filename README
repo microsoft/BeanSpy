@@ -88,23 +88,6 @@ Modification: can be modified by the end user in resources.configuration.config 
 ________________________________________
 
 5. How to build BeanSpy
-Pre-requisites
-________________________________________
-To build the BeanSpy servlet application the following external files are required, download 
-the respective packages and copy the files to the required locations.
-
-The Tomcat servlet-api file is required
-  destination file: \source\ext\Tomcat\servlet-api.jar 
-  this file is available from http://tomcat.apache.org/ and is bundled in most Tomcat binary distributions.
-
-
-To include the build and execution of the unit tests the following junit jar files are required
-  destination file: \source\ext\junit\junit-4.x.jar 
-  destination file: \source\ext\junit\junit-dep-4.x.jar 
-  these files are available from http://www.junit.org/
-
-
-To build the BeanSpy project
 ________________________________________
 Ant and java is used to build and package the java code into WAR and EAR files as well
 as build and execute the unit tests.
