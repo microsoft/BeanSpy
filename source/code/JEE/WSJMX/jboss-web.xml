@@ -20,10 +20,12 @@
 
 <jboss-web>
 
-  <!-- Comment out the following to disable BASIC  -->
-  <!-- authentication for BeanSpy. The             -->
-  <!-- string after java:/jass/ (i.e. opsmgr)      -->
-  <!-- should match a application-policy           -->
-  <!-- section in the login-config.xml.            -->
+  <!-- Comment out the following to disable BASIC    -->
+  <!-- authentication for BeanSpy. The               -->
+  <!-- string after java:/jaas/ (i.e. opsmgr)        -->
+  <!-- should match a application-policy             -->
+  <!-- section in login-config.xml.(JBoss 4,5,6)     -->
+  <!-- should match a security-domain                -->
+  <!-- section in standalone.xml.(JBoss 7/Wildfly 8) -->
   <security-domain>java:/jaas/opsmgr</security-domain>
 </jboss-web>

@@ -36,6 +36,13 @@ public class JmxConstant {
      * </p>
      */
     public static final int URL_LENGTH_LIMITS = 2048;
+   
+    /**
+     * <p>
+     * The boolean variable that determines if a JBoss instance version 7 or Wildfly version 8
+     * </p>
+     */ 
+    public static boolean IS_JBOSS7_WILDFLY = false;    
     
     /**
      * <p>

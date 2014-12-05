@@ -135,8 +135,24 @@ public class JeeServerInfo extends GenericStatistics
                 String storename = names.get(0);
             
                 if(storename.compareTo(JmxConstant.JBOSS_MBEAN_STORE_NAME)==0)
-                {
-                    ServerName = getJMXAttribute(ijmx, "jboss.management.local:j2eeType=J2EEServer,*", "serverVendor");
+				{
+					// If there is a jboss store we determine if it is a jboss 7 or wildfly instance vs jboss 4/5/6
+					// Because there is no JMX accessible property detailing server name for jboss 7 or widlfly
+					// we have to use the version to determine correct label to assign
+					// Version 7 = JBoss AS Version 8 = Wildfly
+					if(JmxConstant.IS_JBOSS7_WILDFLY == true)
+					{
+						String serverVersion = getJMXAttribute(ijmx, "jboss.as:management-root=server,*", "releaseVersion");
+						int majorVersion = Character.getNumericValue(serverVersion.charAt(0));
+
+						if(majorVersion == 7)
+							ServerName = "JBoss AS";
+						else
+						if(majorVersion == 8)
+							ServerName = "Wildfly";
+					}
+					else
+						ServerName = getJMXAttribute(ijmx, "jboss.management.local:j2eeType=J2EEServer,*", "serverVendor");
                 }
                 else
                 if(storename.compareTo(JmxConstant.TOMCAT_MBEAN_STORE_NAME)==0)
@@ -195,8 +211,15 @@ public class JeeServerInfo extends GenericStatistics
             
                 if(storename.compareTo(JmxConstant.JBOSS_MBEAN_STORE_NAME)==0)
                 {
-                    ServerVersion = getJMXAttribute(ijmx, "jboss.management.local:j2eeType=J2EEServer,*", "serverVersion");
-                }
+					// If there is a jboss store we determine if it is a jboss 7 or wildfly instance vs jboss 4/5/6
+
+					if(JmxConstant.IS_JBOSS7_WILDFLY == true)
+					{
+						ServerVersion = getJMXAttribute(ijmx, "jboss.as:management-root=server,*", "releaseVersion");
+					}
+					else
+						ServerVersion = getJMXAttribute(ijmx, "jboss.management.local:j2eeType=J2EEServer,*", "serverVersion");
+				}
                 else
                 if(storename.compareTo(JmxConstant.WEBSPHERE_MBEAN_STORE_NAME)==0)
                 {

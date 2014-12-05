@@ -40,7 +40,7 @@ import com.interopbridges.scx.ScxExceptionCode;
 import com.interopbridges.scx.log.ILogger;
 import com.interopbridges.scx.log.LoggingFactory;
 
-
+import com.interopbridges.scx.util.JmxConstant;
 /**
  * <p>
  * JBoss 4.2.1/5.1.0 Abstraction for the MX4J JMX Store
@@ -83,21 +83,40 @@ public class JBossJMXAbstraction implements IJMX
      */
     public JBossJMXAbstraction(String JMXClass) throws ScxException
     {
-        _logger = LoggingFactory.getLogger();
+		JMXClass = determineJMXClass();
+		String methodToInvoke = "locateJBoss";
+
+        if(JMXClass == "java.lang.management.ManagementFactory")
+		{
+			methodToInvoke = "getPlatformMBeanServer";
+		}
+
+		_logger = LoggingFactory.getLogger();
         try
         {
-            ClassLoader classLoader = this.getClass().getClassLoader();
-
-            Class<?> aClass = classLoader
-                    .loadClass(JMXClass);
-
-            Method meth = aClass
-                    .getDeclaredMethod("locateJBoss", (Class<?>[]) null);
-            Object oBeanServer = meth.invoke(this, (Object[]) null);
-
+	    ClassLoader classLoader = this.getClass().getClassLoader();
+            
+	    Class<?> aClass = classLoader
+                    	.loadClass(JMXClass);
+                
+	    Method meth = aClass
+         	.getDeclaredMethod(methodToInvoke,(Class<?>[]) null);
+	    Object oBeanServer = meth.invoke(this, (Object[]) null);
+	    
             if (oBeanServer instanceof MBeanServer)
             {
                 _server = (MBeanServer) oBeanServer;
+				
+				if (JMXClass == "java.lang.management.ManagementFactory")
+				{
+					ObjectName name = new ObjectName("jboss.as:management-root=server");
+					String serverState = (String) (_server.getAttribute(name, "processType"));
+					if(!serverState.isEmpty() &&
+						serverState.equals("Server"))
+					{
+						JmxConstant.IS_JBOSS7_WILDFLY = true;
+					}
+				}
             }
             else
             {
@@ -107,9 +126,9 @@ public class JBossJMXAbstraction implements IJMX
         }
         catch(Exception e)
         {
-             _logger.fine("The constructor of JBossJMXAbstraction class throws an exception: " + e.getCause());   
-             throw new ScxException(ScxExceptionCode.ERROR_CONNECTING_JMXSTORE);
-        }
+		   _logger.fine("The constructor of JBossJMXAbstraction class throws an exception: " + e.getCause());   
+		   throw new ScxException(ScxExceptionCode.ERROR_CONNECTING_JMXSTORE);
+		}
 
     }
 
@@ -127,8 +146,40 @@ public class JBossJMXAbstraction implements IJMX
      */
     public JBossJMXAbstraction() throws ScxException
     {
-        this("org.jboss.mx.util.MBeanServerLocator");
+	this("org.jboss.mx.util.MBeanServerLocator");
     }
+
+    /*
+     * (non-Javadoc)
+     * 
+     * This function will determine which JBoss JMX MBean Store to connect to
+	 * 
+	 * The function will first try to connect to the JBoss 4/5/6 store and if failed
+	 * will return the JBoss 7 and Wildfly store name.
+     */
+	public String determineJMXClass()
+    {
+		boolean tryJBossWildfly = false;
+		ClassLoader classLoader = this.getClass().getClassLoader();
+
+		String classToLoadJboss456     =   "org.jboss.mx.util.MBeanServerLocator";
+		String classToLoadJbossWildfly = "java.lang.management.ManagementFactory";
+	
+		try
+		{
+			Class<?> aClass = classLoader
+			.loadClass("org.jboss.mx.util.MBeanServerLocator");
+		}
+		catch (Exception e)
+		{
+			tryJBossWildfly = true;
+		}
+
+		if(tryJBossWildfly)
+			return classToLoadJbossWildfly;
+		else
+			return classToLoadJboss456;
+     }
 
     /*
      * (non-Javadoc)
