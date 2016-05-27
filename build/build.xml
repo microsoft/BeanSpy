@@ -42,7 +42,6 @@
   <property name="test.dir" location="${basedir}/test/code/JEE" />
 
   <property name="junit.dir" location="${ext.dir}/junit" />
-  <property name="junit.jar" location="${junit.dir}/junit-4.8.1.jar" />
 
   <property name="tomcat.lib.dir" location="${ext.dir}/tomcat" />
 
@@ -77,6 +76,15 @@
        Creates required directories for intermediate and target build steps 
        - - - - - - - - - - - - - - - - - -->
   <target name="setup">
+  	<get dest="${tomcat.lib.dir}" src="http://search.maven.org/remotecontent?filepath=javax/servlet/servlet-api/2.5/servlet-api-2.5.jar" skipexisting="true">
+  		<globmapper from="*" to="servlet-api-2.5.jar"/>
+  	</get>
+    <get dest="${junit.dir}" src="http://search.maven.org/remotecontent?filepath=junit/junit/4.11/junit-4.11.jar" skipexisting="true">
+  		<globmapper from="*" to="junit-4.11.jar"/>
+    </get>
+    <get dest="${junit.dir}" src="http://search.maven.org/remotecontent?filepath=org/hamcrest/hamcrest-core/1.3/hamcrest-core-1.3.jar" skipexisting="true">
+  		<globmapper from="*" to="hamcrest-core-1.3.jar"/>
+    </get>
     <mkdir dir="${intermediate.dir}" />
     <mkdir dir="${target.dir}" />
   </target>
@@ -246,10 +254,11 @@
        Target for compiling the java (unit-)test code  
        ================================= -->
   <target name="compile.test" depends="compile.src">
-    <javac srcdir="${test.dir}" destdir="${classes.dir}" target="${version}" includeAntRuntime="false" debug="${debug}">
+    <javac srcdir="${test.dir}" destdir="${classes.dir}" source="${version}" target="${version}" includeAntRuntime="false" debug="${debug}">
       <classpath>
         <path refid="classpath.production" />
         <path refid="classpath.test" />
+        <pathelement path="${classes.dir}" />
       </classpath>
     </javac>
   </target>
